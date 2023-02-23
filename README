@@ -42,13 +42,20 @@ On Linux:
   ./generate_certs.sh --defaults
   ./generate_client_profile.sh Lethean_VPN_Client <your-server-public-dns>
 
+  NOTE: Generated profile resides in "profile" folder.
+
   OR
 
   b) Generate your own certificates. Recommended for better validation, control and security through entering your own private key passwords.
 
   chmod +x generate_certs.sh
   chmod +x generate_client_profile.sh
-  ./generate_certs.sh --ca --with-capass 12345 --with-cacn "Lethean Root CA"
+  ./generate_certs.sh --ca --with-capass <your-capass> --with-cacn <cacn>
+  ./generate_certs.sh --server --with-capass <your-capass> --with-serverpass <your-serverpass> --with-servercn <your-server-dns>
+  ./generate_certs.sh --client --with-capass <your-capass> --with-clientpass <clientpass> --with-clientcn <clientcn>
+  ./generate_client_profile.sh <clientcn> <your-server-public-dns>
+
+  NOTE: Generated profile resides in "profile" folder.
 
 
 4. Below was tested on a factory defaulted Raspberry Pi2. Iptables already permitted all required incoming connections.
@@ -116,7 +123,7 @@ Example, set based on the interface which will be used for routing VPN clients.
 
   OR
 
-  docker run -e SCRIPT="generate_certs.sh --ca --with-capass <your-capass> --with-cacn <call-it-anything-you-like>" -p 1194:1194/udp lthn/openvpn
+  docker run -e SCRIPT="generate_certs.sh --ca --with-capass <your-capass> --with-cacn <cacn>" -p 1194:1194/udp lthn/openvpn
   docker run -e SCRIPT="generate_certs.sh --with-capass <your-capass> --server --with-serverpass <your-serverpass> --with-servercn <your-server-dns>" -p 1194:1194/udp lthn/openvpn
   docker run -e SCRIPT="generate_certs.sh --client --with-capass <your-capass> --with-clientpass <clientpass> --with-clientcn <clientcn>" -p 1194:1194/udp lthn/openvpn
 
