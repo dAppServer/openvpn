@@ -1,0 +1,1 @@
+All OpenVPN client profiles created by "generate_client_profiles.sh", are placed locally in this directory.
