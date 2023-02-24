@@ -1,29 +1,27 @@
-# Use Ubuntu as the base image
-FROM ubuntu:latest
+# Use Ubuntu as the base image.
+FROM ubuntu:20.04
 
-# Copy OpenVPN files locally
+# Path where all openvpn scripts and configs will live.
+WORKDIR /home/lthn/openvpn
+
+# Copy all required files locally.
 COPY . .
 
-# Enable IP forwarding and promiscuous mode on interfaces
-RUN echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf \
-    && echo 'net.ipv6.conf.all.disable_ipv6=0' >> /etc/sysctl.conf \
-    && echo 'net.ipv6.conf.all.forwarding=1' >> /etc/sysctl.conf \
-    && sysctl -p \
-    && iptables -P FORWARD ACCEPT \
-    && iptables -A INPUT -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT \
-    && iptables -A INPUT -i tun0 -j ACCEPT \
-    && iptables -A INPUT -p udp --dport 1194 -j ACCEPT \
-    && iptables -A INPUT -i tun0 -s 10.8.0.0/24 -d 127.0.0.1 -j DROP \
-    && iptables -A INPUT -j DROP
+# Install necessary packages and prepare binary location.
+RUN apt-get update && apt-get install -y sudo openssl iptables liblzo2-dev libpam0g-dev \
+    && mkdir -p /home/lthn/bin \
+    && mv bin/sbin/openvpn ../bin/openvpn \
+    && export PATH=/home/lthn/bin:$PATH
 
-USER lthn
-
-# Copy scripts for generating certificates or profiles (optional)
-RUN chmod +x generate_certs.sh
-RUN chmod +x generate_client_profile.sh
+# Gives rights to run scripts for generating certificates, client profiles, setup of ip forwarding, promiscuous mode,  iptables (minimum) and running openvpn server.
+RUN chmod +x generate_certs.sh generate_client_profile.sh startup.sh
 
 # Expose the OpenVPN port
 EXPOSE 1194/udp
 
-# Run the specified startup script (if provided), or the default script if none is provided
-CMD ["/bin/bash", "-c", "if [ -f ${SCRIPT} ]; then ${SCRIPT}; else "/usr/local/sbin/openvpn --config client-cert-ftm.conf"; fi"]
+# Set environment variables
+ENV SCRIPT=""
+
+# Run a specified  script (if provided), or run OpenVPN server if none is provided.
+CMD ["/bin/bash", "-c", "if [ -f \"$SCRIPT\" ]; then \"$SCRIPT\"; else /bin/bash startup.sh; fi"]
+
