@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # set PATH to find all binaries
-PATH=$PATH:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+PATH=$PATH:/home/lthn/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 export TOPDIR=$(realpath $(dirname $0))
 
 # Static defaults
@@ -88,7 +88,7 @@ generate_ca() {
     echo -n 00 >serial
     "${OPENSSL_BIN}" genrsa -aes256 -out private/ca.key.pem -passout pass:$ca_pass 4096
     chmod 400 private/ca.key.pem
-    "${OPENSSL_BIN}" req -config $TOPDIR/conf/ca.cfg -batch -subj "/CN=$cn" -passin pass:$ca_pass \
+    "${OPENSSL_BIN}" req -config $LTHN_PREFIX/openvpn/conf/ca.cfg -batch -subj "/CN=$cn" -passin pass:$ca_pass \
       -key private/ca.key.pem \
       -new -x509 -days 7300 -sha256 -extensions v3_ca \
       -out certs/ca.cert.pem
@@ -107,10 +107,10 @@ generate_server() {
     "${OPENSSL_BIN}" genrsa -aes256 \
       -out private/"$cn".key.pem -passout pass:$server_pass 4096
     chmod 400 private/"$cn".key.pem
-    "${OPENSSL_BIN}" req -config $TOPDIR/conf/ca.cfg -batch -subj "/CN=$cn" -passin "pass:$server_pass" \
+    "${OPENSSL_BIN}" req -config $LTHN_PREFIX/openvpn/conf/ca.cfg -batch -subj "/CN=$cn" -passin "pass:$server_pass" \
       -key private/"$cn".key.pem \
       -new -sha256 -out csr/"$cn".csr.pem
-    "${OPENSSL_BIN}" ca -batch -config $TOPDIR/conf/ca.cfg -subj "/CN=$cn" -passin "pass:$server_pass" \
+    "${OPENSSL_BIN}" ca -batch -config $LTHN_PREFIX/openvpn/conf/ca.cfg -subj "/CN=$cn" -passin "pass:$server_pass" \
       -extensions server_cert -days 375 -notext -md sha256 \
       -in csr/"$cn".csr.pem \
       -out certs/"$cn".cert.pem
@@ -131,10 +131,10 @@ generate_client() {
     "${OPENSSL_BIN}" genrsa -aes256 \
       -out private/client/"$cn".key.pem -passout pass:$client_pass 2048
     chmod 400 private/client/"$cn".key.pem
-    "${OPENSSL_BIN}" req -config $TOPDIR/conf/ca.cfg -batch -subj "/CN=$cn" -passin "pass:$client_pass" \
+    "${OPENSSL_BIN}" req -config $LTHN_PREFIX/openvpn/conf/ca.cfg -batch -subj "/CN=$cn" -passin "pass:$client_pass" \
       -key private/client/"$cn".key.pem \
       -new -sha256 -out csr/client/"$cn".csr.pem
-    "${OPENSSL_BIN}" ca -batch -config $TOPDIR/conf/ca.cfg -subj "/CN=$cn" -passin "pass:$client_pass" \
+    "${OPENSSL_BIN}" ca -batch -config $LTHN_PREFIX/openvpn/conf/ca.cfg -subj "/CN=$cn" -passin "pass:$client_pass" \
       -extensions usr_cert -days 375 -notext -md sha256 \
       -in csr/client/"$cn".csr.pem \
       -out certs/client/"$cn".cert.pem
