@@ -1,7 +1,9 @@
 # Use Ubuntu as the build image.
-FROM lthn/ubuntu-build:22.04 as build
+FROM lthn/ubuntu-build:20.04 as build
 
-WORKDIR /home/lthn
+RUN apt-get update && apt-get install -y python-docutils python3-docutils
+
+WORKDIR /build/lthn
 
 # Copy source files
 COPY . .
@@ -10,10 +12,12 @@ COPY . .
 RUN autoreconf -i -v -f
 
 # Configure build for Linux amd64
-RUN ./configure --prefix=/home/lthn/bin
+RUN ./configure --prefix=/home/lthn
 
 # Compile OpenVPN
 RUN make -j2
+
+RUN make install
 
 # Use Ubuntu as the final image.
 FROM ubuntu:20.04 as final
@@ -28,19 +32,17 @@ RUN apt-get update && apt-get install -y sudo openssl iptables libssl-dev libpam
 WORKDIR /home/lthn/openvpn
 
 # Copy openvpn binary
-COPY --from=build --chmod=0777 /home/lthn/bin/ /home/lthn/bin/
+COPY --from=build --chmod=0777 /home/lthn /home/lthn
+# Copy config & profile folders
 COPY ./conf/ /home/lthn/openvpn/conf/
 COPY ./profile/ /home/lthn/openvpn/profile/
 
 # Copy all helper shell script files locally.
-COPY ./*.sh ./*.conf ./
+COPY --chmod=0777 ./*.sh /home/lthn/bin/
+COPY ./*.conf ./
 
 # Set Lethean environment PATH
-ENV PATH=/home/lthn/bin:/home/lthn/bin/sbin:${PATH}
-
-# Gives rights to run scripts for generating certificates, client profiles,
-# setup of ip forwarding, promiscuous mode, iptables (minimum) and running openvpn server.
-RUN chmod +x generate_certs.sh generate_client_profile.sh startup.sh
+ENV PATH=/home/lthn/bin:/home/lthn/sbin:${PATH}
 
 # Expose the OpenVPN port
 EXPOSE 1194/udp
