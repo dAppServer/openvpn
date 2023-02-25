@@ -11,6 +11,11 @@ SERVER_CONFIG=cert-auth-ftm.conf
 SERVER_PORT=$(grep "^port " ${SERVER_CONFIG} | awk '{print $2}')
 SERVER_PROTO=$(grep "^proto " ${SERVER_CONFIG} | awk '{print $2}')
 
+# Make profile folder if not exists
+if [ ! -d profile ]; then
+  mkdir -p $(pwd)/profile
+fi
+
 # Abort client profile creation if already exists.
 if [ -f profile/"$CLIENT_NAME".ovpn ]; then
     echo "Client profile "$CLIENT_NAME" already exists. Aborting."
