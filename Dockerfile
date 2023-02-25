@@ -33,7 +33,7 @@ COPY ./conf/ /home/lthn/openvpn/conf/
 COPY ./profile/ /home/lthn/openvpn/profile/
 
 # Copy all helper shell script files locally.
-COPY ./*.sh .
+COPY ./*.sh ./*.conf ./
 
 # Set Lethean environment PATH
 ENV PATH=/home/lthn/bin:/home/lthn/bin/sbin:${PATH}
