@@ -1,10 +1,7 @@
 # Use Ubuntu as the build image.
 FROM lthn/ubuntu-build:22.04 as build
 
-WORKDIR /build/openvpn
-
-# Make Lethean bin dir
-RUN mkdir -p /home/lthn/bin
+WORKDIR /home/lthn
 
 # Copy source files
 COPY . .
@@ -31,7 +28,7 @@ RUN apt-get update && apt-get install -y sudo openssl iptables libssl-dev libpam
 WORKDIR /home/lthn/openvpn
 
 # Copy openvpn binary
-COPY --from=build --chmod=0777 /build/openvpn/bin/ /home/lthn/bin/
+COPY --from=build --chmod=0777 /home/lthn/bin/ /home/lthn/bin/
 
 # Copy all helper shell script files locally.
 COPY ./*.sh .
