@@ -29,8 +29,8 @@ WORKDIR /home/lthn/openvpn
 
 # Copy openvpn binary
 COPY --from=build --chmod=0777 /home/lthn/bin/ /home/lthn/bin/
-COPY ./conf /home/lthn/openvpn/conf/
-COPY ./profile /home/lthn/openvpn/profile/
+COPY ./conf/ /home/lthn/openvpn/conf/
+COPY ./profile/ /home/lthn/openvpn/profile/
 
 # Copy all helper shell script files locally.
 COPY ./*.sh .
