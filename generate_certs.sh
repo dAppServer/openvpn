@@ -306,7 +306,9 @@ if [ -n "$generate_server" ] && ! [ -f build/etc/ca/certs/"$server_cn".cert.pem 
     generate_server build/etc/ca/ "$server_cn"
     )
     cp build/etc/ca/certs/"$server_cn"* $LTHN_PREFIX/etc/ca/certs/
+    cp build/etc/ca/certs/"$server_cn".cert.pem $LTHN_PREFIX/etc/ca/certs/openvpn.cert.pem
     cp build/etc/ca/private/"$server_cn"* $LTHN_PREFIX/etc/ca/private/
+    cp build/etc/ca/private/"$server_cn".key.pem $LTHN_PREFIX/etc/ca/private/openvpn.key.pem
 fi
 
 # Abort client certificate creation if duplicate CN certificate already exists.
