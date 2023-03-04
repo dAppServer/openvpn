@@ -116,29 +116,51 @@ Example, set based on the interface which will be used for routing VPN clients.
 
   DOCKER USAGE
 
-  Important: Steps 1 & 2 will have been completed before using docker.
-
   Generate certificates:
 
-  docker run --rm -v $(pwd)/etc:/home/lthn/openvpn/etc lthn/openvpn generate_certs.sh --defaults
+  LINUX
 
-  OR
+    mkdir openvpn && cd openvpn
+    docker run --rm -v $(pwd)/etc:/home/lthn/openvpn/etc lthn/openvpn generate_certs.sh --defaults
 
-  docker run -v $(pwd)/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --ca --with-capass <your-capass> --with-cacn <cacn>
-  docker run -v $(pwd)/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --with-capass <your-capass> --server --with-serverpass <your-serverpass> --with-servercn <your-server-dns>
-  docker run -v $(pwd)/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --client --with-capass <your-capass> --with-clientpass <clientpass> --with-clientcn <clientcn>
+    OR
 
+    docker run -v $(pwd)/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --ca --with-capass <your-capass> --with-cacn <cacn>
+    docker run -v $(pwd)/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --with-capass <your-capass> --server --with-serverpass <your-serverpass> --with-servercn <your-server-dns>
+    docker run -v $(pwd)/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --client --with-capass <your-capass> --with-clientpass <clientpass> --with-clientcn <clientcn>
+
+  WINDOWS (powershell)
+
+    mkdir openvpn && cd openvpn
+    docker run --rm -v ${pwd}/etc:/home/lthn/openvpn/etc lthn/openvpn generate_certs.sh --defaults
+
+    OR
+
+    docker run -v ${pwd}/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --ca --with-capass <your-capass> --with-cacn <cacn>
+    docker run -v ${pwd}/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --with-capass <your-capass> --server --with-serverpass <your-serverpass> --with-servercn <your-server-dns>
+    docker run -v ${pwd}/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --client --with-capass <your-capass> --with-clientpass <clientpass> --with-clientcn <clientcn>
 
   Generate client profile:
 
-  (Defaults profile)
+  LINUX
 
-  docker run -v $(pwd)/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile --rm lthn/openvpn generate_client_profile.sh Lethean_VPN_Client <your-server-public-dns>
+    (Defaults profile)
 
-  OR
+    docker run -v $(pwd)/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile --rm lthn/openvpn generate_client_profile.sh Lethean_VPN_Client <your-server-public-dns>
 
-  docker run -v $(pwd)/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile --rm lthn/openvpn generate_client_profile.sh <client-cert-cn> <your-server-public-dns>
+    OR
 
+    docker run -v $(pwd)/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile --rm lthn/openvpn generate_client_profile.sh <client-cert-cn> <your-server-public-dns>
+
+  WINDOWS (powershell)
+
+    (Defaults profile)
+
+    docker run -v ${pwd}/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile --rm lthn/openvpn generate_client_profile.sh Lethean_VPN_Client <your-server-public-dns>
+
+    OR
+
+    docker run -v ${pwd}/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile --rm lthn/openvpn generate_client_profile.sh <client-cert-cn> <your-server-public-dns>
 
   Run openvpn server:
 
@@ -146,15 +168,22 @@ Example, set based on the interface which will be used for routing VPN clients.
   Container is assuming you already have a local "etc" folder containing your certificates generated earlier. This ensures openvpn server can bind an already created certificate.
   Container is also assuming you already have a local "profile" folder. This ensures client vpn profiles can be generated and served to localhost for easy access.
 
-  sudo chmod 666 /dev/net/tun
-  docker run -p 1194:1194/udp --name lthn-openvpn --device=/dev/net/tun -v $(pwd)/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile lthn/openvpn
+  LINUX
+
+    docker run -p 1194:1194/udp --name lthn-openvpn --device=/dev/net/tun --cap-add=NET_ADMIN -v $(pwd)/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile lthn/openvpn
+
+  WINDOWS (powershell)
+
+    docker run -p 1194:1194/udp --name lthn-openvpn --device=/dev/net/tun --cap-add=NET_ADMIN -v ${pwd}/etc:/home/lthn/openvpn/etc -v ${pwd}/profile:/home/lthn/openvpn/profile lthn/openvpn
 
 
   Generating additional client certficates or profiles from the live running container.
   
-  docker exec lthn-openvpn generate_certs.sh --client --with-capass <your-capass> --with-clientpass <clientpass> --with-clientcn <clientcn>
+  LINUX / WINDOWS (powershell)
 
-  docker exec lthn-openvpn generate_client_profile.sh <clientcn> <your-server-public-dns>
+    docker exec lthn-openvpn generate_certs.sh --client --with-capass <your-capass> --with-clientpass <clientpass> --with-clientcn <clientcn>
+
+    docker exec lthn-openvpn generate_client_profile.sh <clientcn> <your-server-public-dns>
 
   
 *************************************************************************
