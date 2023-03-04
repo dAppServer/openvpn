@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Set the Common Name for the client certificate
 CLIENT_NAME=$1
