@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 # Run OpenVPN server
-openvpn --config client-cert-ftm.conf
+openvpn --config cert-auth-ftm.conf
