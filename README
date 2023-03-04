@@ -10,25 +10,56 @@ as published by the Free Software Foundation.
 1. Install dependencies:
 
 Ubuntu/Debian:
-	
-	apt-get install liblzo2-dev libpam0g-dev
-	
+
+	apt-get install autoconf automake libtool libcap-ng-dev pkg-config liblz4-dev python-docutils python3-docutils liblzo2-dev libpam0g-dev
+
 RHEL/CentOS
-	
+
 	yum install lzo-devel pam-devel
-	
+
 2. Download openvpn, Build and Install:
 
 	cd ~
-	git clone https://github.com/dAppServer/openvpn.git
-	cd openvpn
-	./configure
+	git clone -b lthn https://github.com/dAppServer/openvpn.git
+	mkdir bin
+  cd openvpn
+  autoreconf -i
+	./configure --prefix=$PWD/bin
 	make
 	make install
-	
-or see the file INSTALL for more info.
+  mv bin/sbin/openvpn ../bin/openvpn
+  export PATH=/home/lthn/bin:$PATH
 
-3. Below was tested on a factory defaulted Raspberry Pi2. Iptables already permitted all required incoming connections.
+3. Create required cerificates.
+
+On Linux:
+
+  You have 2 options:
+
+  a) Generate your CA, server and one client certificate automatically (default key passwords). Including generating a client VPN profile for the default client name which is "Lethean_VPN_Client".
+
+  chmod +x generate_certs.sh
+  chmod +x generate_client_profile.sh
+  ./generate_certs.sh --defaults
+  ./generate_client_profile.sh Lethean_VPN_Client <your-server-public-dns>
+
+  NOTE: Generated profile resides in the "profile" folder.
+
+  OR
+
+  b) Generate your own certificates. Recommended for better validation, control and security through entering your own private key passwords.
+
+  chmod +x generate_certs.sh
+  chmod +x generate_client_profile.sh
+  ./generate_certs.sh --ca --with-capass <your-capass> --with-cacn <cacn>
+  ./generate_certs.sh --server --with-capass <your-capass> --with-serverpass <your-serverpass> --with-servercn <your-server-dns>
+  ./generate_certs.sh --client --with-capass <your-capass> --with-clientpass <clientpass> --with-clientcn <clientcn>
+  ./generate_client_profile.sh <clientcn> <your-server-public-dns>
+
+  NOTE: Generated profile resides in "profile" folder.
+
+
+4. Below was tested on a factory defaulted Raspberry Pi2. Iptables already permitted all required incoming connections.
 
 On Linux:
 
@@ -47,7 +78,7 @@ The below subnet is the openvpn conf file default. Change to your requirements.
 
 NOTE: On a PI used for testing the MASQUERADE syntax may not be possible. You can use the command "sudo update-alternatives --config iptables" to change iptables to "iptables-legacy", which will then allow the above to be executed.
 
-4. Enable ip forwarding and promiscious mode on in-path interfaces.
+5. Enable ip forwarding and promiscious mode on in-path interfaces.
 
 Enable IP Forwarding
 
@@ -68,34 +99,93 @@ Example, set based on the interface which will be used for routing VPN clients.
 	sudo ip link set eth0 promisc on
 	sudo ip link set wlan0 promisc on
 
-5. Create required cerificates.
-
-On Linux:
-
-	Generate TLS Auth Key
-
-	openvpn --genkey tls-auth ta.key
-
-To simplify the cerificate creation process, generate DH, CA, server and client keys using easy-rsa tool and instructions here:
-
-   https://github.com/OpenVPN/easy-rsa
-   https://github.com/OpenVPN/easy-rsa/blob/master/README.quickstart.md
-	
-   Guide will be added here in future.
-
-   NOTE: Methods other than easy-rsa can be used to generate certificates. The above repository simplies the process.
-   
-7. Run your openvpn server.
+6. Run your openvpn server.
    Run in daemon mode if desired with the "--daemon" option.
    Config file "client-cert-ftm.conf" is a working sample for ease of use and setup.
    Ensure all certificates/keys are in the paths stated within "client-cert-ftm.conf" or updated accordingly. Paths can be overriden during command execution.
-	
+
    Client certificate authentication in full tunnel mode.
 
 	openvpn --config client-cert-ftm.conf
-	
-8. Connect to your openvpn server. Enjoy!
 
+7. Share the openvpn client profile with your user.
+
+  Enjoy!
+
+*************************************************************************
+
+  DOCKER USAGE
+
+  Generate certificates:
+
+  LINUX
+
+    mkdir openvpn && cd openvpn
+    docker run --rm -v $(pwd)/etc:/home/lthn/openvpn/etc lthn/openvpn generate_certs.sh --defaults
+
+    OR
+
+    docker run -v $(pwd)/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --ca --with-capass <your-capass> --with-cacn <cacn>
+    docker run -v $(pwd)/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --with-capass <your-capass> --server --with-serverpass <your-serverpass> --with-servercn <your-server-dns>
+    docker run -v $(pwd)/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --client --with-capass <your-capass> --with-clientpass <clientpass> --with-clientcn <clientcn>
+
+  WINDOWS (powershell)
+
+    mkdir openvpn && cd openvpn
+    docker run --rm -v ${pwd}/etc:/home/lthn/openvpn/etc lthn/openvpn generate_certs.sh --defaults
+
+    OR
+
+    docker run -v ${pwd}/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --ca --with-capass <your-capass> --with-cacn <cacn>
+    docker run -v ${pwd}/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --with-capass <your-capass> --server --with-serverpass <your-serverpass> --with-servercn <your-server-dns>
+    docker run -v ${pwd}/etc:/home/lthn/openvpn/etc --rm lthn/openvpn generate_certs.sh --client --with-capass <your-capass> --with-clientpass <clientpass> --with-clientcn <clientcn>
+
+  Generate client profile:
+
+  LINUX
+
+    (Defaults profile)
+
+    docker run -v $(pwd)/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile --rm lthn/openvpn generate_client_profile.sh Lethean_VPN_Client <your-server-public-dns>
+
+    OR
+
+    docker run -v $(pwd)/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile --rm lthn/openvpn generate_client_profile.sh <client-cert-cn> <your-server-public-dns>
+
+  WINDOWS (powershell)
+
+    (Defaults profile)
+
+    docker run -v ${pwd}/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile --rm lthn/openvpn generate_client_profile.sh Lethean_VPN_Client <your-server-public-dns>
+
+    OR
+
+    docker run -v ${pwd}/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile --rm lthn/openvpn generate_client_profile.sh <client-cert-cn> <your-server-public-dns>
+
+  Run openvpn server:
+
+  Give your local host user running docker rights to access the TUN interface, then run the container.
+  Container is assuming you already have a local "etc" folder containing your certificates generated earlier. This ensures openvpn server can bind an already created certificate.
+  Container is also assuming you already have a local "profile" folder. This ensures client vpn profiles can be generated and served to localhost for easy access.
+
+  LINUX
+
+    docker run -p 1194:1194/udp --name lthn-openvpn --device=/dev/net/tun --cap-add=NET_ADMIN -v $(pwd)/etc:/home/lthn/openvpn/etc -v $(pwd)/profile:/home/lthn/openvpn/profile lthn/openvpn
+
+  WINDOWS (powershell)
+
+    docker run -p 1194:1194/udp --name lthn-openvpn --device=/dev/net/tun --cap-add=NET_ADMIN -v ${pwd}/etc:/home/lthn/openvpn/etc -v ${pwd}/profile:/home/lthn/openvpn/profile lthn/openvpn
+
+
+  Generating additional client certficates or profiles from the live running container.
+  
+  LINUX / WINDOWS (powershell)
+
+    docker exec lthn-openvpn generate_certs.sh --client --with-capass <your-capass> --with-clientpass <clientpass> --with-clientcn <clientcn>
+
+    docker exec lthn-openvpn generate_client_profile.sh <clientcn> <your-server-public-dns>
+
+  
 *************************************************************************
 
 For detailed information on OpenVPN, including examples, see the man page
