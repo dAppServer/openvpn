@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # set PATH to find all binaries
 PATH=$PATH:/home/lthn/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
