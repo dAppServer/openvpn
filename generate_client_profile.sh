@@ -34,6 +34,9 @@ if ! [ -f $LTHN_PREFIX/profile/"$CLIENT_NAME".ovpn ]; then
     echo "nobind" >> $LTHN_PREFIX/profile/${CLIENT_NAME}.ovpn
     echo "remote-cert-tls server" >> $LTHN_PREFIX/profile/${CLIENT_NAME}.ovpn
     echo "remote ${SERVER_DNS} ${SERVER_PORT} ${SERVER_PROTO}" >> $LTHN_PREFIX/profile/${CLIENT_NAME}.ovpn
+    echo "cipher AES-256-GCM" >> $LTHN_PREFIX/profile/${CLIENT_NAME}.ovpn
+    echo "auth SHA512" >> $LTHN_PREFIX/profile/${CLIENT_NAME}.ovpn
+    echo "tls-cipher TLS-DHE-RSA-WITH-AES-256-GCM-SHA384" >> $LTHN_PREFIX/profile/${CLIENT_NAME}.ovpn
     echo "<ca>" >> $LTHN_PREFIX/profile/${CLIENT_NAME}.ovpn
     cat $LTHN_PREFIX/etc/ca/certs/ca.cert.pem >> $LTHN_PREFIX/profile/${CLIENT_NAME}.ovpn
     echo "</ca>" >> $LTHN_PREFIX/profile/${CLIENT_NAME}.ovpn
